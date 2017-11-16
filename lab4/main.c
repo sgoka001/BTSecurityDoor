@@ -40,11 +40,12 @@ unsigned char bt_check = 0;
 unsigned char checker = 0; // 1 = valid entry, 0 = no key entered
 unsigned char checker2 = 0; // 1 = valid entry, 0 = no key entered
 
-unsigned char lr = 0; // unlock = 2, lock = 1
+unsigned char lr = 0; // unlock = 2
 
+unsigned char room = 0;
 //////////////////////////////////////////////////////////////////////// LOCAL VARIABLES ////////////////////////////////////////////////////////////////////////
 
-enum MotorState {READ_MOTION, READ_KEY_INIT, READ_KEY_WAIT, READ_KEY_INIT_2, READ_KEY, UNLOCK, LOCK} motor_state;
+enum MotorState {READ_MOTION, READ_KEY_INIT, READ_KEY_WAIT, READ_KEY_INIT_2, READ_KEY, LOCK, UNLOCK} motor_state;
 
 void Motor_Init(){
 	motor_state = READ_MOTION;
@@ -52,9 +53,9 @@ void Motor_Init(){
 
 void Motor_Tick()
 {
+	
 	char garage_button = (GetBit(~PIND, 3)); //if button is pressed then = 8
 	char motion_sensor = (GetBit(~PIND, 2)); //if motion is sensed then = 4
-	
 	switch(motor_state)
 	{	
 		case READ_MOTION:
@@ -81,7 +82,7 @@ void Motor_Tick()
 			if (lr == 2){motor_state = UNLOCK;}
 			else {motor_state = READ_KEY;}
 			break;
-			
+		
 		case UNLOCK:
 			if(cnt > 200) {motor_state = LOCK; cnt = 0; motion_sensor = 0;}
 			else {motor_state = UNLOCK; cnt = cnt + 1;}
@@ -91,7 +92,7 @@ void Motor_Tick()
 			if(cnt > 200) {motor_state = READ_MOTION; cnt = 0; lr = 0; motion_sensor = 0;}
 			else {motor_state = LOCK; cnt = cnt + 1;}
 			break;
-			
+		
 		default:
 			motor_state = READ_MOTION;
 			break;
@@ -104,11 +105,10 @@ void Motor_Tick()
 			PORTD = SetBit(PORTD,4,0); //GARAGE LIGHT OFF
 			if (motion_sensor == 0){
 				nokia_lcd_clear();
-				nokia_lcd_set_cursor(35, 10);
+				nokia_lcd_set_cursor(35, 0);
 				nokia_lcd_write_string("No", 2);
-				nokia_lcd_set_cursor(15, 30);
+				nokia_lcd_set_cursor(15, 20);
 				nokia_lcd_write_string("Motion", 2);
-				nokia_lcd_set_cursor(50, 40);
 				//nokia_lcd_write_char(motion_sensor + '0', 1);
 				//nokia_lcd_write_char(garage_button + '0', 1);
 			}
@@ -139,14 +139,9 @@ void Motor_Tick()
 			nokia_lcd_write_string("PASSCODE?", 1);
 			
 			nokia_lcd_set_cursor(10, 30);
-			nokia_lcd_write_string("Cal Entry: ", 1);
+			nokia_lcd_write_string("Entry: ", 1);
 			nokia_lcd_set_cursor(65, 30);
 			nokia_lcd_write_char(key, 1);
-			
-			nokia_lcd_set_cursor(10, 40);
-			nokia_lcd_write_string("BT Entry: ", 1);
-			nokia_lcd_set_cursor(65, 40);
-			nokia_lcd_write_char(key + '0', 1);
 			nokia_lcd_render();
 			break;
 			
@@ -179,18 +174,11 @@ void Motor_Tick()
 			nokia_lcd_write_string("PASSCODE?", 1);
 			
 			nokia_lcd_set_cursor(10, 30);
-			nokia_lcd_write_string("Cal Entry: ", 1);
+			nokia_lcd_write_string("Entry: ", 1);
 			nokia_lcd_set_cursor(65, 30);
 			nokia_lcd_write_char(key, 1);
 			nokia_lcd_set_cursor(70, 30);
 			nokia_lcd_write_char(key2, 1);
-		
-			nokia_lcd_set_cursor(10, 40);
-			nokia_lcd_write_string("BT Entry: ", 1);
-			nokia_lcd_set_cursor(65, 40);
-			nokia_lcd_write_char(key + '0', 1);
-			nokia_lcd_set_cursor(70, 40);
-			nokia_lcd_write_char(key2 + '0', 1);
 			nokia_lcd_render();
 			break;
 			
@@ -206,18 +194,11 @@ void Motor_Tick()
 				nokia_lcd_set_cursor(0, 20);
 				nokia_lcd_write_string("RESTART BOARD", 1);
 				nokia_lcd_set_cursor(10, 30);
-				nokia_lcd_write_string("Cal Entry: ", 1);
+				nokia_lcd_write_string("Entry: ", 1);
 				nokia_lcd_set_cursor(65, 30);
 				nokia_lcd_write_char(key, 1);
 				nokia_lcd_set_cursor(70, 30);
 				nokia_lcd_write_char(key2, 1);
-				
-				nokia_lcd_set_cursor(10, 40);
-				nokia_lcd_write_string("BT Entry: ", 1);
-				nokia_lcd_set_cursor(65, 40);
-				nokia_lcd_write_char(key + '0', 1);
-				nokia_lcd_set_cursor(70, 40);
-				nokia_lcd_write_char(key2 + '0', 1);
 				nokia_lcd_render();
 			}
 			numPhases = 1024; //(90 / 5.625) * 64
@@ -233,27 +214,22 @@ void Motor_Tick()
 					lr = 0;
 				}
 			} 
-			
-			if(garage_button == 8){PORTA = (loc[temp] << 4); PORTD = ((0x01 << 4) | PORTD);}
-			else{PORTA = loc[temp]; PORTD = SetBit(PORTD,4,0);}
+			if(garage_button == 8){PORTA = (loc[temp] << 4); PORTD = ((0x01 << 4) | PORTD); room = 2;}
+			else{PORTA = loc[temp]; PORTD = SetBit(PORTD,4,0); room = 1;}
 				
 			nokia_lcd_clear();
 			nokia_lcd_set_cursor(10, 20);
 			nokia_lcd_write_string("UNLOCKING!", 1);
 			nokia_lcd_set_cursor(10, 30);
-			nokia_lcd_write_string("Cal Entry: ", 1);
+			nokia_lcd_write_string("Entry: ", 1);
 			nokia_lcd_set_cursor(65, 30);
 			nokia_lcd_write_char(key, 1);
 			nokia_lcd_set_cursor(70, 30);
 			nokia_lcd_write_char(key2, 1);
-			
 			nokia_lcd_set_cursor(10, 40);
-			nokia_lcd_write_string("BT Entry: ", 1);
+			nokia_lcd_write_string("Room: ", 1);
 			nokia_lcd_set_cursor(65, 40);
-			nokia_lcd_write_char(key + '\0', 1);
-			nokia_lcd_set_cursor(70, 40);
-			nokia_lcd_write_char(key2 + '\0', 1);
-			
+			nokia_lcd_write_char(room + '0', 1);
 			nokia_lcd_render();
 			break;
 			
@@ -266,27 +242,18 @@ void Motor_Tick()
 				{
 					lr = 0;
 				}
-			}
-			
-			if(garage_button == 8){PORTA = (loc[temp] << 4); PORTD = ((0x01 << 4) | PORTD);}
-			else{PORTA = loc[temp]; PORTD = SetBit(PORTD,4,0);}
 				
+			}
+			if(garage_button == 8){PORTA = (loc[temp] << 4); PORTD = ((0x01 << 4) | PORTD); room = 2;}
+			else{PORTA = loc[temp]; PORTD = SetBit(PORTD,4,0); room = 1;}
+			
 			nokia_lcd_clear();
 			nokia_lcd_set_cursor(10, 20);
 			nokia_lcd_write_string("LOCKING!", 1);
-			nokia_lcd_set_cursor(10, 30);
-			nokia_lcd_write_string("Cal Entry: ", 1);
-			nokia_lcd_set_cursor(65, 30);
-			nokia_lcd_write_char(key, 1);
-			nokia_lcd_set_cursor(70, 30);
-			nokia_lcd_write_char(key2, 1);
-			
 			nokia_lcd_set_cursor(10, 40);
-			nokia_lcd_write_string("BT Entry: ", 1);
+			nokia_lcd_write_string("Room: ", 1);
 			nokia_lcd_set_cursor(65, 40);
-			nokia_lcd_write_char(key + '\0', 1);
-			nokia_lcd_set_cursor(70, 40);
-			nokia_lcd_write_char(key2 + '\0', 1);
+			nokia_lcd_write_char(room + '0', 1);
 			nokia_lcd_render();
 			break;
 		
@@ -304,47 +271,10 @@ void MotorTask()
 	vTaskDelay(3); 
    } 
 }
-/*
-enum BTState {INIT, READ} BT_state;
 
-void BT_Init(){
-	BT_state = INIT;
-}
-
-void BT_Tick()
-{
-	switch(motor_state)
-	{
-		case INIT:
-			if(bt_)
-			
-		default:
-			BT_state = INIT;
-			break;
-	}
-	
-	
-	switch(motor_state)
-	{
-		default:
-		break;
-	}
-}
-
-void BTTask()
-{
-	BT_Init();
-	for(;;)
-	{
-		BT_Tick();
-		vTaskDelay(10);
-	}
-}
-*/
 void StartSecPulse(unsigned portBASE_TYPE Priority)
 {
 	xTaskCreate(MotorTask, (signed portCHAR *)"MotorTask", configMINIMAL_STACK_SIZE, NULL, Priority, NULL );
-	//xTaskCreate(BTTask(), (signed portCHAR *)"BTTask", configMINIMAL_STACK_SIZE, NULL, Priority, NULL );
 }
  
 int main(void) 
@@ -362,7 +292,11 @@ int main(void)
    StartSecPulse(1);
     //RunSchedular 
    vTaskStartScheduler();
- 
+   /*
+   eeprom_write_byte(0, password)
+   password = eeprom_read_byte(0);
+   eeprom_update_byte(0, )
+   */
    return 0; 
 }
 
