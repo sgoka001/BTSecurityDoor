@@ -34,20 +34,23 @@ unsigned char cnt = 0;
 unsigned char menu_key;
 unsigned char key; //first entry on keypad
 unsigned char key2; //second entry on keypad
-unsigned char bt_check = 0;
+unsigned char key3;
 
+unsigned char bt_check = 0;
 unsigned char menu_check = 0;
 unsigned char checker = 0; // 1 = valid entry, 0 = no key entered
 unsigned char checker2 = 0; // 1 = valid entry, 0 = no key entered
+unsigned char checker3 = 0; // 1 = valid entry, 0 = no key entered
 
 unsigned char password = '1';
 unsigned char password2 = '2';
+unsigned char password3 = '3';
 
 unsigned char lr = 0; // unlock = 2
 unsigned char room = 0; // bed = 1 garage = 2
 //////////////////////////////////////////////////////////////////////// LOCAL VARIABLES ////////////////////////////////////////////////////////////////////////
 
-enum MotorState {READ_MOTION, MENU, READ_KEY_WAIT, READ_KEY_INIT, CURRENT_PASS, CHANGE_PASS, READ_KEY_WAIT_2, READ_KEY_INIT_2, READ_KEY, LOCK, UNLOCK} motor_state;
+enum MotorState {READ_MOTION, MENU, READ_KEY_WAIT, READ_KEY_INIT, CURRENT_PASS, CHANGE_PASS, READ_KEY_WAIT_2, READ_KEY_INIT_2, READ_KEY_WAIT_3, READ_KEY_INIT_3, READ_KEY, LOCK, UNLOCK} motor_state;
 
 void Motor_Init(){
 	motor_state = READ_MOTION;
@@ -77,8 +80,9 @@ void Motor_Tick()
 			break;
 			
 		case READ_KEY_INIT:
-			if(checker == 1){motor_state = READ_KEY_WAIT_2;}
-			else if (checker == 0){motor_state = READ_KEY_INIT;}
+			if((checker == 1) && (bt_check == 0)){motor_state = READ_KEY_WAIT_2;}
+			else if((checker == 0) && (bt_check == 1)){motor_state = UNLOCK;}
+			else if((checker == 0) && (bt_check == 0)){motor_state = READ_KEY_INIT;}
 			break;
 			
 		case CURRENT_PASS:
@@ -97,8 +101,20 @@ void Motor_Tick()
 			break;
 			
 		case READ_KEY_INIT_2:
-			if(checker2 == 1){motor_state = READ_KEY;}
-			else if (checker2 == 0){motor_state = READ_KEY_INIT_2;}
+			if((checker2 == 1) && (bt_check == 0)){motor_state = READ_KEY_WAIT_3;}
+			else if((checker2 == 0) && (bt_check == 1)){motor_state = UNLOCK;}
+			else if((checker2 == 0) && (bt_check == 0)){motor_state = READ_KEY_INIT_2;}
+			break;
+			
+		case READ_KEY_WAIT_3:
+			if(cnt > 200){motor_state = READ_KEY_INIT_3; cnt = 0;}
+			else{motor_state = READ_KEY_WAIT_3; cnt = cnt + 1;}
+			break;
+			
+		case READ_KEY_INIT_3:
+			if((checker3 == 1) && (bt_check == 0)){motor_state = READ_KEY;}
+			else if((checker3 == 0) && (bt_check == 1)){motor_state = UNLOCK;}
+			else if((checker3 == 0) && (bt_check == 0)){motor_state = READ_KEY_INIT_3;}
 			break;
 			
 		case READ_KEY:
@@ -132,9 +148,6 @@ void Motor_Tick()
 				nokia_lcd_write_string("No", 2);
 				nokia_lcd_set_cursor(15, 20);
 				nokia_lcd_write_string("Motion", 2);
-				//nokia_lcd_set_cursor(0, 40);
-				//nokia_lcd_write_char(motion_sensor + '0', 1);
-				//nokia_lcd_write_char(garage_button + '0', 1);
 			}
 			nokia_lcd_render();
 			break;
@@ -171,7 +184,6 @@ void Motor_Tick()
 				bt_check = 1;
 				key = USART_Receive(0);
 				USART_Flush(0);
-				checker = 1;
 			}
 			else{
 				bt_check = 0;
@@ -190,7 +202,7 @@ void Motor_Tick()
 			nokia_lcd_set_cursor(10, 30);
 			
 			nokia_lcd_write_string("Entry: ", 1);
-			nokia_lcd_set_cursor(65, 30);
+			nokia_lcd_set_cursor(50, 30);
 			nokia_lcd_write_char(key, 1);
 			nokia_lcd_render();
 			break;
@@ -203,6 +215,8 @@ void Motor_Tick()
 			nokia_lcd_write_char(password, 1);
 			nokia_lcd_set_cursor(20, 20);
 			nokia_lcd_write_char(password2, 1);
+			nokia_lcd_set_cursor(30, 20);
+			nokia_lcd_write_char(password3, 1);
 			nokia_lcd_render();
 			break;
 			
@@ -221,7 +235,6 @@ void Motor_Tick()
 				bt_check = 1;
 				key2 = USART_Receive(0);
 				USART_Flush(0);
-				checker2 = 1;
 			}
 			else{
 				
@@ -243,16 +256,54 @@ void Motor_Tick()
 			
 			nokia_lcd_set_cursor(10, 30);
 			nokia_lcd_write_string("Entry: ", 1);
-			nokia_lcd_set_cursor(65, 30);
+			nokia_lcd_set_cursor(50, 30);
 			nokia_lcd_write_char(key, 1);
-			nokia_lcd_set_cursor(70, 30);
+			nokia_lcd_set_cursor(60, 30);
 			nokia_lcd_write_char(key2, 1);
+			nokia_lcd_render();
+			break;
+			
+		case READ_KEY_WAIT_3:
+			break;
+		
+		case READ_KEY_INIT_3:
+			if((USART_HasReceived(0))){
+				bt_check = 1;
+				key3 = USART_Receive(0);
+				USART_Flush(0);
+			}
+			else{
+			
+				if(bt_check == 1){bt_check = 1;}
+				else{bt_check = 0;}
+			
+				key3 = GetKeypadKey();
+				if ((key3 != '\0')){
+					checker3 = 1;
+				}
+				else{
+					checker3 = 0;
+				}
+			}
+		
+			nokia_lcd_clear();
+			nokia_lcd_set_cursor(10, 0);
+			nokia_lcd_write_string("PASSCODE?", 1);
+		
+			nokia_lcd_set_cursor(10, 30);
+			nokia_lcd_write_string("Entry: ", 1);
+			nokia_lcd_set_cursor(50, 30);
+			nokia_lcd_write_char(key, 1);
+			nokia_lcd_set_cursor(60, 30);
+			nokia_lcd_write_char(key2, 1);
+			nokia_lcd_set_cursor(70, 30);
+			nokia_lcd_write_char(key3, 1);
 			nokia_lcd_render();
 			break;
 			
 			
 		case READ_KEY:
-			if(((key == password) && (key2 == password2)) || (bt_check)){ //LOCK = 1 2
+			if((key == password) && (key2 == password2) && (key3 == password3)){ //LOCK = 1 2
 				lr = 2;
 			}
 			else{
@@ -263,10 +314,12 @@ void Motor_Tick()
 				nokia_lcd_write_string("RESTART BOARD", 1);
 				nokia_lcd_set_cursor(10, 30);
 				nokia_lcd_write_string("Entry: ", 1);
-				nokia_lcd_set_cursor(65, 30);
+				nokia_lcd_set_cursor(50, 30);
 				nokia_lcd_write_char(key, 1);
-				nokia_lcd_set_cursor(70, 30);
+				nokia_lcd_set_cursor(60, 30);
 				nokia_lcd_write_char(key2, 1);
+				nokia_lcd_set_cursor(70, 30);
+				nokia_lcd_write_char(key3, 1);
 				nokia_lcd_render();
 			}
 			numPhases = 1024; //(90 / 5.625) * 64
@@ -286,14 +339,22 @@ void Motor_Tick()
 			else{PORTA = loc[temp]; PORTD = SetBit(PORTD,4,0); room = 1;}
 				
 			nokia_lcd_clear();
-			nokia_lcd_set_cursor(10, 20);
+			nokia_lcd_set_cursor(10, 10);
 			nokia_lcd_write_string("UNLOCKING!", 1);
 			nokia_lcd_set_cursor(10, 30);
 			nokia_lcd_write_string("Entry: ", 1);
-			nokia_lcd_set_cursor(65, 30);
-			nokia_lcd_write_char(key, 1);
-			nokia_lcd_set_cursor(70, 30);
-			nokia_lcd_write_char(key2, 1);
+			if(bt_check == 0){
+				nokia_lcd_set_cursor(50, 30);
+				nokia_lcd_write_char(key, 1);
+				nokia_lcd_set_cursor(60, 30);
+				nokia_lcd_write_char(key2, 1);
+				nokia_lcd_set_cursor(70, 30);
+				nokia_lcd_write_char(key3, 1);
+			}
+			else{
+				nokia_lcd_set_cursor(50, 30);
+				nokia_lcd_write_string("Phone", 1);
+			}
 			nokia_lcd_set_cursor(10, 40);
 			nokia_lcd_write_string("Room: ", 1);
 			nokia_lcd_set_cursor(65, 40);
@@ -316,7 +377,7 @@ void Motor_Tick()
 			else{PORTA = loc[temp]; PORTD = SetBit(PORTD,4,0); room = 1;}
 			
 			nokia_lcd_clear();
-			nokia_lcd_set_cursor(10, 20);
+			nokia_lcd_set_cursor(10, 10);
 			nokia_lcd_write_string("LOCKING!", 1);
 			nokia_lcd_set_cursor(10, 40);
 			nokia_lcd_write_string("Room: ", 1);
