@@ -198,7 +198,6 @@ void Motor_Tick()
 			nokia_lcd_set_cursor(30, 0);
 			nokia_lcd_write_string("CODE?", 1);
 			nokia_lcd_set_cursor(10, 30);
-			
 			nokia_lcd_write_string("Entry: ", 1);
 			nokia_lcd_set_cursor(50, 30);
 			nokia_lcd_write_char(key, 1);
@@ -235,10 +234,6 @@ void Motor_Tick()
 				USART_Flush(0);
 			}
 			else{
-				
-				if(bt_check == 1){bt_check = 1;}
-				else{bt_check = 0;}
-					
 				key2 = GetKeypadKey();
 				if ((key2 != '\0')){
 					checker2 = 1;
@@ -249,9 +244,8 @@ void Motor_Tick()
 			}
 			
 			nokia_lcd_clear();
-			nokia_lcd_set_cursor(10, 0);
-			nokia_lcd_write_string("PASSCODE?", 1);
-			
+			nokia_lcd_set_cursor(30, 0);
+			nokia_lcd_write_string("CODE?", 1);
 			nokia_lcd_set_cursor(10, 30);
 			nokia_lcd_write_string("Entry: ", 1);
 			nokia_lcd_set_cursor(50, 30);
@@ -271,10 +265,6 @@ void Motor_Tick()
 				USART_Flush(0);
 			}
 			else{
-			
-				if(bt_check == 1){bt_check = 1;}
-				else{bt_check = 0;}
-			
 				key3 = GetKeypadKey();
 				if ((key3 != '\0')){
 					checker3 = 1;
@@ -285,9 +275,8 @@ void Motor_Tick()
 			}
 		
 			nokia_lcd_clear();
-			nokia_lcd_set_cursor(10, 0);
-			nokia_lcd_write_string("PASSCODE?", 1);
-		
+			nokia_lcd_set_cursor(30, 0);
+			nokia_lcd_write_string("CODE?", 1);
 			nokia_lcd_set_cursor(10, 30);
 			nokia_lcd_write_string("Entry: ", 1);
 			nokia_lcd_set_cursor(50, 30);
@@ -301,7 +290,7 @@ void Motor_Tick()
 			
 			
 		case READ_KEY:
-			if((key == passwordarray[0]) && (key2 == passwordarray[1]) && (key3 == passwordarray[2])){ //LOCK = 1 2
+			if((key == passwordarray[0]) && (key2 == passwordarray[1]) && (key3 == passwordarray[2])){ 
 				lr = 2;
 			}
 			else{
