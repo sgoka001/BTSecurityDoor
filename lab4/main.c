@@ -67,7 +67,7 @@ void Motor_Tick()
 		
 		case MENU:
 			if(menu_check == 1){motor_state = READ_KEY_WAIT;}
-			else if(menu_check == 2){motor_state = CHANGE_PASS;}
+			//else if(menu_check == 2){motor_state = CHANGE_PASS;}
 			else if(menu_check == 3){motor_state = CURRENT_PASS;}
 			else if(menu_check == 0){motor_state = MENU;}
 			break;
@@ -155,9 +155,11 @@ void Motor_Tick()
 			if ((menu_key == 'A')){
 				menu_check = 1;
 			}
+			/*
 			else if ((menu_key == 'B')){
 				menu_check = 2;
 			}
+			*/
 			else if ((menu_key == 'C')){
 				menu_check = 3;
 			}
@@ -165,12 +167,16 @@ void Motor_Tick()
 				menu_check = 0;
 			}
 			nokia_lcd_clear();
-			nokia_lcd_set_cursor(0, 10);
-			nokia_lcd_write_string("A-enter code", 1);
+			nokia_lcd_set_cursor(30, 0);
+			nokia_lcd_write_string("Menu", 1);
+			nokia_lcd_set_cursor(0, 20);
+			nokia_lcd_write_string("A - enter code", 1);
+			/*
 			nokia_lcd_set_cursor(0, 20);
 			nokia_lcd_write_string("B-change code", 1);
+			*/
 			nokia_lcd_set_cursor(0, 30);
-			nokia_lcd_write_string("C-check code", 1);
+			nokia_lcd_write_string("C - check code", 1);
 			nokia_lcd_render();
 			break;
 			
